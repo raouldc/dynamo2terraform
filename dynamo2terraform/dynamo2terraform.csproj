@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <AssemblyName>dynamo2terraform</AssemblyName>
+    <RootNamespace>dynamo2terraform</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="TestFiles\Models\ApplicationGrant.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="TestFiles\Models" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="2.6.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="TestFiles\Models\Hello.cs" />
+  </ItemGroup>
+</Project>

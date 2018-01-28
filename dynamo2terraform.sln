@@ -1,0 +1,18 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dynamo2terraform", "dynamo2terraform\dynamo2terraform.csproj", "{EAA73075-2E14-46D5-9FCE-694CF75A9CC5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EAA73075-2E14-46D5-9FCE-694CF75A9CC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EAA73075-2E14-46D5-9FCE-694CF75A9CC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EAA73075-2E14-46D5-9FCE-694CF75A9CC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EAA73075-2E14-46D5-9FCE-694CF75A9CC5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+	EndGlobalSection
+EndGlobal
