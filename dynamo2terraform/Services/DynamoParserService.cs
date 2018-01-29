@@ -10,17 +10,73 @@ namespace dynamo2terraform.Services
 		public static DynamoDbTable Parse(SyntaxTree tree)
 		{
 			var syntaxRoot = tree.GetRoot();
-			var properties = syntaxRoot.DescendantNodes().OfType<PropertyDeclarationSyntax>().ToList();
+			var properties = syntaxRoot.DescendantNodes().ToList();
 			return new DynamoDbTable {
 				HashKey = GetHashKey(properties),
-				RangeKey = GetRangeKey(properties)
+				RangeKey = GetRangeKey(properties),
+				GlobalSecondaryIndexes = GetGlobalSecondaryIndexes(properties)
 			};
 		}
 
-		private static IEnumerable<PropertyDeclarationSyntax> GetNodesWithAttributeName(string attributeName,
-			IEnumerable<PropertyDeclarationSyntax> syntaxNodes)
+		private static List<DynamoDbGlobalSecondaryIndex> GetGlobalSecondaryIndexes(
+			IEnumerable<SyntaxNode> syntaxNodes)
 		{
-			return syntaxNodes.Where(p => p.DescendantNodes()
+			var nodes = GetNodesWithAttributeName<FieldDeclarationSyntax>(Constants.IndexAttribute, syntaxNodes);
+
+			var list = new List<DynamoDbGlobalSecondaryIndex>();
+
+			foreach (var node in nodes) {
+				var variableName = node.Declaration.Variables.First().Identifier.ToString();
+				var value = node.Declaration.Variables.First().Initializer.Value.ToString().Replace("\"", "");
+
+				var projectionType = GetProjectionTypeFromNodeWithIndexAttribute(node);
+				var hashKeyProperty =
+					GetPropertyFromAttributeAndIndexName(Constants.GSIHashKeyAttribute, variableName, syntaxNodes);
+				var rangeKeyProperty =
+					GetPropertyFromAttributeAndIndexName(Constants.GSIRangeKeyAttribute, variableName, syntaxNodes);
+
+				list.Add(new DynamoDbGlobalSecondaryIndex {
+					HashKey = GetPropertyName(hashKeyProperty),
+					RangeKey = GetPropertyName(rangeKeyProperty),
+					Name = value,
+					ProjectionType = projectionType?.ToUpper()
+				});
+			}
+
+			return list;
+		}
+
+		private static string GetProjectionTypeFromNodeWithIndexAttribute(FieldDeclarationSyntax node)
+		{
+			return (node
+				.AttributeLists
+				.SelectMany(a => a.Attributes)
+				.Select(x => x.ArgumentList)
+				.SelectMany(a => a.Arguments)
+				.First()
+				.Expression as MemberAccessExpressionSyntax)?.Name.ToString();
+		}
+
+		private static PropertyDeclarationSyntax GetPropertyFromAttributeAndIndexName(string attributeName, string indexName,
+			IEnumerable<SyntaxNode> syntaxNodes)
+		{
+			return GetNodesWithAttributeName
+					<PropertyDeclarationSyntax>(attributeName, syntaxNodes)
+				.First(n => n
+					.AttributeLists
+					.SelectMany(a => a.Attributes)
+					.Select(x => x.ArgumentList)
+					.SelectMany(a => a.Arguments)
+					.Any(x => x.ToString() == indexName)
+				);
+		}
+
+		private static IEnumerable<T> GetNodesWithAttributeName<T>(string attributeName,
+			IEnumerable<SyntaxNode> syntaxNodes) where T : SyntaxNode
+		{
+			return syntaxNodes
+				.OfType<T>()
+				.Where(p => p.DescendantNodes()
 					.OfType<AttributeSyntax>()
 					.Any(a => a.DescendantNodes()
 						.OfType<IdentifierNameSyntax>()
@@ -34,9 +90,10 @@ namespace dynamo2terraform.Services
 			return node.Identifier.ToString();
 		}
 
-		private static DynamoDbAttribute GetHashKey(IEnumerable<PropertyDeclarationSyntax> node)
+		private static DynamoDbAttribute GetHashKey(IEnumerable<SyntaxNode> node)
 		{
-			var hashKeyNode = GetNodesWithAttributeName(Constants.HashKeyAttribute, node).FirstOrDefault();
+			var hashKeyNode = GetNodesWithAttributeName<PropertyDeclarationSyntax>(Constants.HashKeyAttribute, node)
+				.FirstOrDefault();
 			if (hashKeyNode == null) return null;
 			return new DynamoDbAttribute {
 				Name = GetPropertyName(hashKeyNode),
@@ -44,9 +101,10 @@ namespace dynamo2terraform.Services
 			};
 		}
 
-		private static DynamoDbAttribute GetRangeKey(IEnumerable<PropertyDeclarationSyntax> node)
+		private static DynamoDbAttribute GetRangeKey(IEnumerable<SyntaxNode> node)
 		{
-			var rangeKeyNode = GetNodesWithAttributeName(Constants.RangeKeyAttribute, node).FirstOrDefault();
+			var rangeKeyNode = GetNodesWithAttributeName<PropertyDeclarationSyntax>(Constants.RangeKeyAttribute, node)
+				.FirstOrDefault();
 			if (rangeKeyNode == null) return null;
 			return new DynamoDbAttribute {
 				Name = GetPropertyName(rangeKeyNode),
