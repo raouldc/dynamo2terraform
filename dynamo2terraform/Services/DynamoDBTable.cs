@@ -7,6 +7,8 @@ namespace dynamo2terraform.Services
 		public DynamoDbAttribute HashKey { get; set; }
 		public DynamoDbAttribute RangeKey { get; set; }
 		public List<DynamoDbGlobalSecondaryIndex> GlobalSecondaryIndexes { get; set; }
+		public string Name { get; set; }
+		public List<DynamoDbAttribute> Attributes { get; set; }
 	}
 
 	public class DynamoDbAttribute
@@ -17,8 +19,8 @@ namespace dynamo2terraform.Services
 
 	public class DynamoDbGlobalSecondaryIndex
 	{
-		public string HashKey { get; set; }
-		public string RangeKey { get; set; }
+		public DynamoDbAttribute HashKey { get; set; }
+		public DynamoDbAttribute RangeKey { get; set; }
 		public string Name { get; set; }
 		public string ProjectionType { get; set; }
 	}

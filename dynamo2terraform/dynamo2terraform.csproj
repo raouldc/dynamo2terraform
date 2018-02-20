@@ -6,9 +6,6 @@
     <RootNamespace>dynamo2terraform</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="TestFiles\Models\ApplicationGrant.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <Folder Include="TestFiles\Models" />
   </ItemGroup>
   <ItemGroup>
@@ -16,6 +13,6 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="2.6.1" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="TestFiles\Models\Hello.cs" />
+    <Compile Remove="TestFiles\Models\Person.cs" />
   </ItemGroup>
 </Project>

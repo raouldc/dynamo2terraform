@@ -11,11 +11,68 @@ namespace dynamo2terraform.Services
 		{
 			var syntaxRoot = tree.GetRoot();
 			var properties = syntaxRoot.DescendantNodes().ToList();
+
+			var hashKey = GetHashKey(properties);
+			var rangeKey = GetRangeKey(properties);
+			var globalSecondaryIndexes = GetGlobalSecondaryIndexes(properties);
+
+			var attributes = BuildAttributes(hashKey, rangeKey, globalSecondaryIndexes);
+
 			return new DynamoDbTable {
-				HashKey = GetHashKey(properties),
-				RangeKey = GetRangeKey(properties),
-				GlobalSecondaryIndexes = GetGlobalSecondaryIndexes(properties)
+				HashKey = hashKey,
+				RangeKey = rangeKey,
+				GlobalSecondaryIndexes = globalSecondaryIndexes,
+				Name = GetTableName(properties),
+				Attributes = attributes.Select(a => a.Value).ToList()
 			};
+		}
+
+		private static Dictionary<string, DynamoDbAttribute> BuildAttributes(DynamoDbAttribute hashKey,
+			DynamoDbAttribute rangeKey,
+			IEnumerable<DynamoDbGlobalSecondaryIndex> globalSecondaryIndexes)
+		{
+			var attributes = new Dictionary<string, DynamoDbAttribute>();
+
+			if (hashKey != null) {
+				attributes.TryAdd(hashKey.Name, new DynamoDbAttribute {
+					Name = hashKey.Name,
+					Type = hashKey.Type
+				});
+			}
+
+			if (rangeKey != null) {
+				attributes.TryAdd(rangeKey.Name, new DynamoDbAttribute {
+					Name = rangeKey.Name,
+					Type = rangeKey.Type
+				});
+			}
+
+			foreach (var index in globalSecondaryIndexes) {
+				attributes.TryAdd(index.HashKey.Name, new DynamoDbAttribute {
+					Name = index.HashKey.Name,
+					Type = index.HashKey.Type
+				});
+				attributes.TryAdd(index.RangeKey.Name, new DynamoDbAttribute {
+					Name = index.RangeKey.Name,
+					Type = index.RangeKey.Type
+				});
+			}
+
+			return attributes;
+		}
+
+		private static string GetTableName(IEnumerable<SyntaxNode> node)
+		{
+			var tableNode = GetNodesWithAttributeName<ClassDeclarationSyntax>(Constants.TableNameAttribute, node)
+				.FirstOrDefault();
+
+			return (tableNode?
+				.AttributeLists
+				.SelectMany(a => a.Attributes)
+				.Select(x => x.ArgumentList)
+				.SelectMany(a => a.Arguments)
+				.First()
+				.Expression as LiteralExpressionSyntax)?.Token.Value.ToString();
 		}
 
 		private static List<DynamoDbGlobalSecondaryIndex> GetGlobalSecondaryIndexes(
@@ -36,8 +93,8 @@ namespace dynamo2terraform.Services
 					GetPropertyFromAttributeAndIndexName(Constants.GSIRangeKeyAttribute, variableName, syntaxNodes);
 
 				list.Add(new DynamoDbGlobalSecondaryIndex {
-					HashKey = GetPropertyName(hashKeyProperty),
-					RangeKey = GetPropertyName(rangeKeyProperty),
+					HashKey = BuildDynamoDbAttribute(hashKeyProperty),
+					RangeKey = BuildDynamoDbAttribute(rangeKeyProperty),
 					Name = value,
 					ProjectionType = projectionType?.ToUpper()
 				});
@@ -94,10 +151,15 @@ namespace dynamo2terraform.Services
 		{
 			var hashKeyNode = GetNodesWithAttributeName<PropertyDeclarationSyntax>(Constants.HashKeyAttribute, node)
 				.FirstOrDefault();
-			if (hashKeyNode == null) return null;
+
+			return hashKeyNode == null ? null : BuildDynamoDbAttribute(hashKeyNode);
+		}
+
+		private static DynamoDbAttribute BuildDynamoDbAttribute(PropertyDeclarationSyntax node)
+		{
 			return new DynamoDbAttribute {
-				Name = GetPropertyName(hashKeyNode),
-				Type = GetPropertyTypeAsDynamoType(hashKeyNode)
+				Name = GetPropertyName(node),
+				Type = GetPropertyTypeAsDynamoType(node)
 			};
 		}
 

@@ -1,34 +1,27 @@
-# Pushpay.IdentityService.Models.Application table
+# {{ table.Name }} table
 
 resource "aws_dynamodb_table" "table_name" {
-  name           = "${var.environment}_Pushpay.Identity.Application"
+  name           = "${var.environment}_{{ table.Name }}"
   read_capacity  = 1
   write_capacity = 1
-  hash_key       = "Key"
+  hash_key       = "{{ table.HashKey.Name }}"
 
-  attribute {
-    name = "Key"
-    type = "S"
-  }
-
-  attribute {
-    name = "ClientId"
-    type = "S"
-  }
-
-  attribute {
-    name = "Realm"
-    type = "S"
-  }
-
-  global_secondary_index {
-    hash_key        = "Realm"
-    range_key       = "ClientId"
-    name            = "Realm-ClientId-Index"
-    projection_type = "ALL"
-    read_capacity   = 1
-    write_capacity  = 1
-  }
+{% for attribute in table.Attributes %}
+	attribute {
+    		name = "{{ attribute.Name }}"
+    		type = "{{ attribute.Type }}"
+	}
+{% endfor %}
+{% for index in table.GlobalSecondaryIndexes %}
+	global_secondary_index {
+		hash_key        = "{{ index.HashKey.Name }}"
+		range_key       = "{{ index.RangeKey.Name }}"
+		name            = "{{ index.Name }}"
+		projection_type = "{{ index.ProjectionType }}"
+		read_capacity   = 1
+		write_capacity  = 1
+	}
+{% endfor %}
 
   tags {
     App         = "se"

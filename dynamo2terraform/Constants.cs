@@ -8,5 +8,6 @@
 		public static string HashKeyAttribute = "DynamoDBHashKey";
 		public static string RangeKeyAttribute = "DynamoDBRangeKey";
 		public static string IndexAttribute = "DynamoIndex";
+		public static string TableNameAttribute = "DynamoDBTable";
 	}
 }
