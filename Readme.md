@@ -42,7 +42,7 @@ resource "aws_dynamodb_table" "table_name" {
         }
         attribute {
                 name = "Status"
-                type = ""
+                type = "N"
         }
         attribute {
                 name = "Name"
