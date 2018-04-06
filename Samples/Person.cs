@@ -32,8 +32,7 @@ namespace Test.Models
 		public Instant? DeletedAt { get; set; }
 
 		[DynamoDBGlobalSecondaryIndexRangeKey(NameAndStatusIndex)]
-		[DynamoDBEntryType(EntryType = DynamoDBEntryType.Numeric)]
-		public PersonStatus Status { get; set; }
+		public int Status { get; set; }
 	}
 }
 
