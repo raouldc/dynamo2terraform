@@ -15,7 +15,7 @@ Options:
 
 ## Example
 
-Using the `Person.cs` model and the `TerraformTemplate.liquid` template provided in the `Samples` folder
+Using the [Person model](Samples/Person.cs) model and the [Liquid template](Samples/TerraformTemplate.liquid) provided in the [Samples](Samples) folder
 
 ### Input:
 ```
